@@ -18,12 +18,16 @@ public class AestheticGenerator : Singleton<AestheticGenerator>
     float travelledDistance;
     float lastLocation;
 
-    List<GameObject> aestheticSquares = new List<GameObject>();
+    // Instead of fixing this implementation we can alter it into a pooled system pretty easily.
+    List<GameObject> aestheticSquares { get; } = new List<GameObject>();
     float aestheticBehindToRegenDistance = 15f;
 
     void Start(){
         currentCreationRange = Random.Range(creationRangeBounds.x, creationRangeBounds.y);
+        travelledDistance = 0;
+        lastLocation = 0;
     }
+
 
     void Update(){
         if(activePlayer == null){
@@ -44,13 +48,12 @@ public class AestheticGenerator : Singleton<AestheticGenerator>
     }
 
 
-    Player activePlayer;
+    Player activePlayer => GameController.Instance.activePlayer;
 
     void GenerateAesthetic(){
         currentCreationRange = Random.Range(creationRangeBounds.x, creationRangeBounds.y);
 
-        GameObject newAesthetic = GameObject.Instantiate(aestheticPrefab);
-        aestheticSquares.Add(newAesthetic);
+        GameObject newAesthetic = GetPooledAesthetic();
         newAesthetic.transform.SetParent(transform);
         newAesthetic.transform.position = new Vector3(lastLocation + xDistanceInFront, Random.Range(yRange.x, yRange.y), 0f);
 
@@ -61,17 +64,33 @@ public class AestheticGenerator : Singleton<AestheticGenerator>
         newAesthetic.transform.localRotation = Quaternion.Euler(0f, 0f, rot);
     }
 
+    GameObject GetPooledAesthetic(){
+
+        // Some prefer foreach, i use for unless otherwise neccecary not to.
+        for(int i = 0; i < aestheticSquares.Count; i++)
+        {
+            if(!aestheticSquares[i].activeSelf)
+            {
+                aestheticSquares[i].SetActive(true);
+                return aestheticSquares[i];
+            }
+        }
+
+        var newAesthetic = GameObject.Instantiate(aestheticPrefab);
+        aestheticSquares.Add(newAesthetic);
+
+        return newAesthetic;
+    }
+
     void CleanAestheticSquares()
     {
         for(int i = 0; i < aestheticSquares.Count; i++)
         {
             if(aestheticSquares[i].transform.position.x < (activePlayer.transform.position.x - aestheticBehindToRegenDistance))
             {
-                Destroy(aestheticSquares[i]);
-                aestheticSquares.RemoveAt(i);
+                aestheticSquares[i].SetActive(false);
             }
         }
-
     }
 
     public IEnumerator CleanAllAestheticSquaresAfterDelay(float delay = 0.35f)
@@ -85,14 +104,20 @@ public class AestheticGenerator : Singleton<AestheticGenerator>
     {
         for (int i = 0; i < aestheticSquares.Count; i++)
         {
-            Destroy(aestheticSquares[i]);
-            aestheticSquares.RemoveAt(i);
+            aestheticSquares[i].SetActive(false);
         }
     }
 
     public void SetActivePlayer(Player p){
-        activePlayer = p;
         lastLocation = activePlayer.transform.position.x;
     }
 
+
+    // In reality this should all be changed this could be a lot better. But lets keep it simple for this.
+    public void ResetStats() {
+        currentCreationRange = Random.Range(creationRangeBounds.x, creationRangeBounds.y);
+        travelledDistance = 0;
+        lastLocation = 0;
+        CleanAestheticSquares();
+    }
 }

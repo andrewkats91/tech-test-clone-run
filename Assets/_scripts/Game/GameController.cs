@@ -52,7 +52,7 @@ public class GameController : Singleton<GameController>
     public AudioClip cloneCreateClip;
     public AudioClip gameOverClip;
     public AudioSource pointSource;
-    public AestheticGenerator aestheticGenerator;
+    public AestheticGenerator aestheticGenerator; // Both a reference and a singleton? Consistency.
 
     public int highScore {
         get{
@@ -268,10 +268,6 @@ public class GameController : Singleton<GameController>
         chargeBar.SetActivePlayer(activePlayer);
         platformGenerator.SetActivePlayer(activePlayer);
 
-        if(aestheticGenerator != null){
-            aestheticGenerator.SetActivePlayer(activePlayer);
-        }
-
         activePlayer.SetActivePlayer(true);
     }
 
@@ -322,6 +318,8 @@ public class GameController : Singleton<GameController>
     public void RestartGame(int score = 0, float speed = -1f)
     {
         isGameOver = false;
+        
+        AestheticGenerator.Instance.ResetStats();
 
         SetScore(score);
         menuControl.SetShowMenu(false);
