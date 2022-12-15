@@ -8,8 +8,8 @@ public class ContinueMenu : MonoBehaviour
 {
     [SerializeField] MenuControl menuControlRef_;
 
-    float rewardTime = (20f + 5f);
-    float rewardTimer;
+    float maxContinueTime = 5f;
+    float continueTimer;
 
     [SerializeField] TextMeshProUGUI timerText;
     [SerializeField] Image timerImage;
@@ -26,26 +26,26 @@ public class ContinueMenu : MonoBehaviour
         continueScore = score;
         continueSpeed = speed;
 
-        timerText.text = Mathf.CeilToInt(rewardTimer).ToString("N0");
+        timerText.text = Mathf.CeilToInt(continueTimer).ToString("N0");
         timerImage.fillClockwise = !timerImage.fillClockwise;
 
         buttonPressed = false;
 
         isActive = true;
 
-        rewardTimer = rewardTime;
+        continueTimer = maxContinueTime;
     }
 
     void LateUpdate()
     {
         if (!isActive) return;
 
-        rewardTimer -= Time.deltaTime;
-        timerText.text = Mathf.CeilToInt(rewardTimer).ToString("N0");
+        continueTimer -= Time.deltaTime;
+        timerText.text = Mathf.CeilToInt(continueTimer).ToString("N0");
 
-        timerImage.fillAmount = rewardTimer / rewardTime;
+        timerImage.fillAmount = continueTimer / maxContinueTime;
 
-        if (rewardTimer <= 0f)
+        if (continueTimer <= 0f)
         {
             HandleNoButtonPressed();
         }
